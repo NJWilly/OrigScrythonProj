@@ -1,19 +1,13 @@
 # This is a sample Python script to test scrython
 import getdeckimage
+from mtg_tools import get_card_price
 
 
 def get_price():
-    # get the price of a given card
-    import scrython
+    # ask for the name of a MTG card and print the price
 
     mtg_card = input("Enter the name of a MTG card:  ")
-    card = scrython.cards.Named(fuzzy=mtg_card)
-    card_price = str(card.prices("usd"))
-    print(card_price)
-    if card_price == "None":
-        return -1
-    else:
-        return card_price
+    print(get_card_price(mtg_card))
 
 
 def list_all_sets(print_it=False):
@@ -208,6 +202,7 @@ def write_to_kahoot_excel_file():
             worksheet.write(start_cell + "1", line)
             start_cell = chr(ord(start_cell) + 1)
     workbook.close()
+
 
 if __name__ == "__main__":
     print("\n\nMTG Programs - Main Menu\n\n")
