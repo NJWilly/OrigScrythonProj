@@ -18,7 +18,6 @@ def list_all_sets(print_it=False):
         print("\nList of all MTG Sets")
         for cur_set in mtg_set.data():
             print(cur_set["name"] + " (" + cur_set["code"].upper() + ")")
-        # print("There were " + str(len(mtg_set)) + " sets found.")
         print("There are " + str(mtg_set.data_length()) + " sets.")
     return mtg_set
 
@@ -230,6 +229,42 @@ def print_removal():
                 print("")
     print(f'\nThere were {mtg_cards.total_cards()} cards found tagged as removel in the MTG set: {mtg_set}.')
 
+
+def get_removal_data_on_all_sets():
+    import scrython
+    import time
+
+    # open Excel file
+    import xlsxwriter  # see https://xlsxwriter.readthedocs.io/
+    workbook = xlsxwriter.Workbook("RemovalData.xlsx")
+    worksheet = workbook.add_worksheet()
+
+    # write header data
+    worksheet.write("A1", "Name")
+    worksheet.write("B1", "Abv")
+    worksheet.write("B3", "Removal")
+    worksheet.write("B4", "Total")
+
+    mtg_sets = scrython.sets.Sets()
+    time.sleep(.001)
+    cur_row = 2
+    for mtg_set in mtg_sets.data():
+        if mtg_set['set_type'] == 'core' or mtg_set['set_type'] == 'expansion':
+            search_str = "e:" + mtg_set["code"] + " -t:basic"
+            mtg_cards = scrython.cards.Search(q=search_str)
+            time.sleep(.001)
+            mtg_removal_cards = scrython.cards.Search(q="s:" + mtg_set["code"] + " otag:removal")
+            time.sleep(.001)
+            worksheet.write("A" + str(cur_row), mtg_set["name"])
+            worksheet.write("B" + str(cur_row), mtg_set["code"].upper())
+            worksheet.write("C" + str(cur_row), mtg_removal_cards.total_cards())
+            worksheet.write("D" + str(cur_row), mtg_cards.total_cards())
+            cur_row += 1
+            print(f'In set {mtg_set["name"]} ({mtg_set["code"].upper()}) - '
+                  f'{mtg_removal_cards.total_cards()}/{mtg_cards.total_cards()} cards are removal')
+    workbook.close()
+
+
 if __name__ == "__main__":
     print("\n\nMTG Programs - Main Menu\n\n")
     print("1) Get price of a card")
@@ -242,6 +277,7 @@ if __name__ == "__main__":
     print("8) Make Kahoot Quiz from instant cards from a set")
     print("9) Download images of cards listed in deck.txt")
     print("10) Print removal cards from a set")
+    print("11) Print removal data from all sets")
     print("\n")
     menu_choice = input("Your choice: ")
 
@@ -265,5 +301,7 @@ if __name__ == "__main__":
         getdeckimage.get_deck_images()
     elif menu_choice == "10":
         print_removal()
+    elif menu_choice == "11":
+        get_removal_data_on_all_sets()
     else:
         print("Not a valid choice!")
