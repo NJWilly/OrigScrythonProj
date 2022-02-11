@@ -204,6 +204,32 @@ def write_to_kahoot_excel_file():
     workbook.close()
 
 
+def print_removal():
+    # Return a list of mtg cards from a set tagged as removal
+    #
+    import scrython
+
+    # loop through card populating question and mana cost lists
+    mtg_set = "neo"
+    mtg_cards = scrython.cards.Search(q="s:" + mtg_set + " otag:removal")
+
+    for selected_card in mtg_cards.data():
+        if "card_faces" in selected_card:
+            # load from first card face
+            print(selected_card["card_faces"][0]["name"], end="")
+            if len(selected_card["card_faces"][0]["mana_cost"]) > 0:
+                print(" (" + selected_card["card_faces"][0]["mana_cost"] + ")")
+            else:
+                print("")
+        else:
+            # load from card
+            print(selected_card["name"], end="")
+            if len(selected_card["mana_cost"]) > 0:
+                print(" (" + selected_card["mana_cost"] + ")")
+            else:
+                print("")
+    print(f'\nThere were {mtg_cards.total_cards()} cards found tagged as removel in the MTG set: {mtg_set}.')
+
 if __name__ == "__main__":
     print("\n\nMTG Programs - Main Menu\n\n")
     print("1) Get price of a card")
@@ -215,6 +241,7 @@ if __name__ == "__main__":
     print("7) Write sample Kahoot quiz Excel file")
     print("8) Make Kahoot Quiz from instant cards from a set")
     print("9) Download images of cards listed in deck.txt")
+    print("10) Print removal cards from a set")
     print("\n")
     menu_choice = input("Your choice: ")
 
@@ -236,5 +263,7 @@ if __name__ == "__main__":
         make_kahoot_quiz()
     elif menu_choice == "9":
         getdeckimage.get_deck_images()
+    elif menu_choice == "10":
+        print_removal()
     else:
         print("Not a valid choice!")
