@@ -20,6 +20,7 @@ def get_deck_images():
     import json
     import requests
     import time
+    import pickle
 
     start_db_load = time.time()
     with open('./venv/all-cards.json', 'r', encoding='utf-8') as f:
@@ -32,6 +33,9 @@ def get_deck_images():
 
     with open('./venv/Deck.txt') as f:
         deck = f.readlines()
+
+    with open('cards.pickle', 'wb') as f:
+        pickle.dump(cards, f)
 
     for item in deck:
         current_card = item[2:].strip()
