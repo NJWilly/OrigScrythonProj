@@ -4,7 +4,7 @@ from mtg_tools import get_card_price
 
 
 def get_price():
-    # ask for the name of a MTG card and print the price
+    # ask for the name of an MTG card and print the price
 
     mtg_card = input("Enter the name of a MTG card:  ")
     print(get_card_price(mtg_card))
@@ -209,7 +209,7 @@ def print_removal():
     import scrython
 
     # loop through card populating question and mana cost lists
-    mtg_set = "neo"
+    mtg_set = "ISD"
     mtg_cards = scrython.cards.Search(q="s:" + mtg_set + " otag:removal")
 
     for selected_card in mtg_cards.data():
@@ -227,7 +227,7 @@ def print_removal():
                 print(" (" + selected_card["mana_cost"] + ")")
             else:
                 print("")
-    print(f'\nThere were {mtg_cards.total_cards()} cards found tagged as removel in the MTG set: {mtg_set}.')
+    print(f'\nThere were {mtg_cards.total_cards()} cards found tagged as removal in the MTG set: {mtg_set}.')
 
 
 def get_removal_data_on_all_sets():
