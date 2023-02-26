@@ -306,7 +306,7 @@ def create_rounded_rectangle_mask(rectangle, radius):
     return i
 
 
-def blur_casting_cost(cc, card_image_fname):
+def blur_casting_cost(cc, card_image_fname, show=None):
     # see https://stackoverflow.com/questions/50433000/blur-a-region-shaped-like-a-rounded-rectangle-inside-an-image
     #
     #
@@ -333,11 +333,27 @@ def blur_casting_cost(cc, card_image_fname):
     # only those parts of the mask that have a non-zero alpha gets pasted
     img.paste(blurred_img, (x, y), create_rounded_rectangle_mask(cropped_img, radius))
 
-    img.save('temp_images/' + card_image_fname + '.png')
-    img.show()
+    card_image_fname_root = card_image_fname[:card_image_fname.index('.')]
+    img.save('temp_images/' + card_image_fname_root + '_CC_blured.jpg')
+    if show is not None:
+        img.show()
+
+
+def get_casting_cost_length(card):
+    card_raw_cc = card.mana_cost()
+    # print(card_raw_cc)
+    card_raw_temp = re.sub(r'{?\d?\d}', 'D', card_raw_cc)
+    # print(f'{card_raw_temp} should have no double digits')
+    card_raw_temp = re.sub(r'{./.}', 'H', card_raw_temp)
+    # print(f'{card_raw_temp} should have no hybrid mana')
+    card_cc = re.sub(r'{*.}', 'M', card_raw_temp)
+    # print(f'There are {len(card_cc)} symbols in the casting cost {card_cc}')
+    return card_cc
 
 
 def test_blur_casting_cost():
+    # TODO: make working for double faced cards
+    # TODO: make name safe for a filename with a function
     # ask for a card name
     mtg_card = input("Enter the name of a MTG card:  ")
 
@@ -351,17 +367,11 @@ def test_blur_casting_cost():
     open('temp_images/' + card_name, 'wb').write(r.content)
 
     # get casting cost
-    card_raw_cc = card.mana_cost()
-    print(card_raw_cc)
-    card_raw_temp = re.sub(r'{?\d?\d}', 'D', card_raw_cc)
-    print(f'{card_raw_temp} should have no double digits')
-    card_raw_temp = re.sub(r'{./.}', 'H', card_raw_temp)
-    print(f'{card_raw_temp} should have no hybrid mana')
-    card_cc = re.sub(r'{*.}', 'M', card_raw_temp)
-    print(f'There are {len(card_cc)} symbols in the casting cost {card_cc}')
+    card_cc = get_casting_cost_length(card)
 
     # blur the casting cost
     blur_casting_cost(card_cc, card_name)
+
 
 
 if __name__ == "__main__":
@@ -377,8 +387,7 @@ if __name__ == "__main__":
     print("9) Download images of cards listed in deck.txt")
     print("10) Print removal cards from a set")
     print("11) Print removal data from all sets")
-    print("12) Blur the casting cost from Abrade")
-    print("13) Blur the casting cost for a card")
+    print("12) Blur the casting cost for a card")
     print("\n")
     menu_choice = input("Your choice: ")
 
