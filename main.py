@@ -1,7 +1,7 @@
 # This is a sample Python script to test scrython
 import requests
 import scrython
-from scrython import ScryfallError
+# from scrython import ScryfallError
 import re
 import getdeckimage
 from mtg_tools import get_card_price
@@ -284,7 +284,7 @@ def create_rounded_rectangle_mask(rectangle, radius):
     # create corner
     corner = Image.new('RGBA', (radius, radius), (0, 0, 0, 0))
     draw = ImageDraw.Draw(corner)
-    # added the fill = .. you only drew a line, no fill
+    # added the fill = . you only drew a line, no fill
     draw.pieslice((0, 0, radius * 2, radius * 2), 180, 270, fill=solid_fill)
 
     # max_x, max_y
@@ -324,7 +324,8 @@ def blur_casting_cost(cc, card_image_fname, show=None):
     x, y = start_blur, 44  # start of blur position from the left and from the top
     radius = 25
 
-    cropped_img = img.crop((x, y, x + blur_size, y + 52))  # third and fourth parameters is how far right and how far down to blur
+    # third and fourth parameters is how far right and how far down to blur
+    cropped_img = img.crop((x, y, x + blur_size, y + 52))
 
     # the filter removes the alpha, you need to add it again by converting to RGBA
     blurred_img = cropped_img.filter(ImageFilter.GaussianBlur(20), ).convert("RGBA")
@@ -371,7 +372,6 @@ def test_blur_casting_cost():
 
     # blur the casting cost
     blur_casting_cost(card_cc, card_name)
-
 
 
 if __name__ == "__main__":
