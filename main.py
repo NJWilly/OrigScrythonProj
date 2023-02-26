@@ -306,37 +306,6 @@ def create_rounded_rectangle_mask(rectangle, radius):
     return i
 
 
-def blur_abrade_casting_cost():
-    # see https://stackoverflow.com/questions/50433000/blur-a-region-shaped-like-a-rounded-rectangle-inside-an-image
-    #
-    #
-    symbol_space = 38
-    between_space = 6
-
-    casting_cost = "RR"
-    casting_cost_len = len(casting_cost)
-    print(f'There are {casting_cost_len} symbols in the casting cost')
-    blur_size = symbol_space * casting_cost_len + between_space * (casting_cost_len - 1)
-    start_blur = 625 - blur_size
-
-    img = Image.open('114_Abrade.jpg')
-
-    x, y = start_blur, 50  # start of blur position from the left and from the top
-    radius = 25
-
-    cropped_img = img.crop((x, y, x + blur_size, y + 40))  # third and fourth parameters is how far right and how far down to blur
-
-    # the filter removes the alpha, you need to add it again by converting to RGBA
-    blurred_img = cropped_img.filter(ImageFilter.GaussianBlur(20), ).convert("RGBA")
-
-    # paste blurred, uses alphachannel of create_rounded_rectangle_mask() as mask
-    # only those parts of the mask that have a non-zero alpha gets pasted
-    img.paste(blurred_img, (x, y), create_rounded_rectangle_mask(cropped_img, radius))
-
-    img.save('Abrade.Blurred.png')
-    img.show()
-
-
 def blur_casting_cost(cc, card_image_fname):
     # see https://stackoverflow.com/questions/50433000/blur-a-region-shaped-like-a-rounded-rectangle-inside-an-image
     #
@@ -350,7 +319,7 @@ def blur_casting_cost(cc, card_image_fname):
     start_blur = 625 - blur_size
 
     img = Image.open('temp_images/' + card_image_fname)
-    print(f'Image Shape: {img.size}')
+    # print(f'Image Shape: {img.size}')
 
     x, y = start_blur, 44  # start of blur position from the left and from the top
     radius = 25
@@ -377,20 +346,19 @@ def test_blur_casting_cost():
 
     # get card image
 
-    # r = requests.get(card['image_uris']['large'])
     r = requests.get(card.image_uris()['large'])
     card_name = card.collector_number() + "_" + card.name() + '.jpg'
     open('temp_images/' + card_name, 'wb').write(r.content)
 
     # get casting cost
     card_raw_cc = card.mana_cost()
-    print(card_raw_cc)
+    # print(card_raw_cc)
     card_raw_temp = re.sub('\\{?\\d?\\d\\}', 'D', card_raw_cc)
-    print(f'{card_raw_temp} should have no double digits')
+    # print(f'{card_raw_temp} should have no double digits')
     card_raw_temp = re.sub('\\{.\\/.\\}', 'H', card_raw_temp)
-    print(f'{card_raw_temp} should have no hybrid mana')
-    card_cc = re.sub('\\{*.\\}', 'X', card_raw_temp)
-    print(f'There are {len(card_cc)} symbols in the casting cost {card_cc}')
+    # print(f'{card_raw_temp} should have no hybrid mana')
+    card_cc = re.sub('\\{*.\\}', 'M', card_raw_temp)
+    # print(f'There are {len(card_cc)} symbols in the casting cost {card_cc}')
 
     # blur the casting cost
     blur_casting_cost(card_cc, card_name)
@@ -437,8 +405,6 @@ if __name__ == "__main__":
     elif menu_choice == "11":
         get_removal_data_on_all_sets()
     elif menu_choice == "12":
-        blur_abrade_casting_cost()
-    elif menu_choice == "13":
         test_blur_casting_cost()
     else:
         print("Not a valid choice!")
