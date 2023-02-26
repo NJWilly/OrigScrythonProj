@@ -352,13 +352,13 @@ def test_blur_casting_cost():
 
     # get casting cost
     card_raw_cc = card.mana_cost()
-    # print(card_raw_cc)
-    card_raw_temp = re.sub('\\{?\\d?\\d\\}', 'D', card_raw_cc)
-    # print(f'{card_raw_temp} should have no double digits')
-    card_raw_temp = re.sub('\\{.\\/.\\}', 'H', card_raw_temp)
-    # print(f'{card_raw_temp} should have no hybrid mana')
-    card_cc = re.sub('\\{*.\\}', 'M', card_raw_temp)
-    # print(f'There are {len(card_cc)} symbols in the casting cost {card_cc}')
+    print(card_raw_cc)
+    card_raw_temp = re.sub(r'{?\d?\d}', 'D', card_raw_cc)
+    print(f'{card_raw_temp} should have no double digits')
+    card_raw_temp = re.sub(r'{./.}', 'H', card_raw_temp)
+    print(f'{card_raw_temp} should have no hybrid mana')
+    card_cc = re.sub(r'{*.}', 'M', card_raw_temp)
+    print(f'There are {len(card_cc)} symbols in the casting cost {card_cc}')
 
     # blur the casting cost
     blur_casting_cost(card_cc, card_name)
