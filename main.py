@@ -1,6 +1,14 @@
 # This is a sample Python script to test scrython
+import requests
+import scrython
+from scrython import ScryfallError
+import re
 import getdeckimage
 from mtg_tools import get_card_price
+# import Pillow
+from PIL import Image
+from PIL import ImageFilter
+from PIL import ImageDraw
 
 
 def get_price():
@@ -16,9 +24,9 @@ def list_all_sets(print_it=False):
     mtg_set = scrython.sets.Sets()
     if print_it:
         print("\nList of all MTG Sets")
-        for cur_set in mtg_set.data():
+        for cur_set in reversed(mtg_set.data()):
             print(cur_set["name"] + " (" + cur_set["code"].upper() + ")")
-        print("There are " + str(mtg_set.data_length()) + " sets.")
+        print("\nThere are " + str(mtg_set.data_length()) + " sets.")
     return mtg_set
 
 
@@ -265,6 +273,129 @@ def get_removal_data_on_all_sets():
     workbook.close()
 
 
+# when using an image as mask only the alpha channel is important
+solid_fill = (50, 50, 50, 255)
+
+
+def create_rounded_rectangle_mask(rectangle, radius):
+    # create mask image. all pixels set to translucent
+    i = Image.new("RGBA", rectangle.size, (0, 0, 0, 0))
+
+    # create corner
+    corner = Image.new('RGBA', (radius, radius), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(corner)
+    # added the fill = .. you only drew a line, no fill
+    draw.pieslice((0, 0, radius * 2, radius * 2), 180, 270, fill=solid_fill)
+
+    # max_x, max_y
+    mx, my = rectangle.size
+
+    # paste corner rotated as needed
+    # use corners alpha channel as mask
+
+    i.paste(corner, (0, 0), corner)
+    i.paste(corner.rotate(90), (0, my - radius), corner.rotate(90))
+    i.paste(corner.rotate(180), (mx - radius, my - radius), corner.rotate(180))
+    i.paste(corner.rotate(270), (mx - radius, 0), corner.rotate(270))
+
+    # draw both inner rects
+    draw = ImageDraw.Draw(i)
+    draw.rectangle([(radius, 0), (mx - radius, my)], fill=solid_fill)
+    draw.rectangle([(0, radius), (mx, my - radius)], fill=solid_fill)
+
+    return i
+
+
+def blur_abrade_casting_cost():
+    # see https://stackoverflow.com/questions/50433000/blur-a-region-shaped-like-a-rounded-rectangle-inside-an-image
+    #
+    #
+    symbol_space = 38
+    between_space = 6
+
+    casting_cost = "RR"
+    casting_cost_len = len(casting_cost)
+    print(f'There are {casting_cost_len} symbols in the casting cost')
+    blur_size = symbol_space * casting_cost_len + between_space * (casting_cost_len - 1)
+    start_blur = 625 - blur_size
+
+    img = Image.open('114_Abrade.jpg')
+
+    x, y = start_blur, 50  # start of blur position from the left and from the top
+    radius = 25
+
+    cropped_img = img.crop((x, y, x + blur_size, y + 40))  # third and fourth parameters is how far right and how far down to blur
+
+    # the filter removes the alpha, you need to add it again by converting to RGBA
+    blurred_img = cropped_img.filter(ImageFilter.GaussianBlur(20), ).convert("RGBA")
+
+    # paste blurred, uses alphachannel of create_rounded_rectangle_mask() as mask
+    # only those parts of the mask that have a non-zero alpha gets pasted
+    img.paste(blurred_img, (x, y), create_rounded_rectangle_mask(cropped_img, radius))
+
+    img.save('Abrade.Blurred.png')
+    img.show()
+
+
+def blur_casting_cost(cc, card_image_fname):
+    # see https://stackoverflow.com/questions/50433000/blur-a-region-shaped-like-a-rounded-rectangle-inside-an-image
+    #
+    #
+    symbol_space = 39
+    between_space = 1
+
+    casting_cost = cc
+    casting_cost_len = len(casting_cost)
+    blur_size = symbol_space * casting_cost_len + between_space * (casting_cost_len - 1)
+    start_blur = 625 - blur_size
+
+    img = Image.open('temp_images/' + card_image_fname)
+    print(f'Image Shape: {img.size}')
+
+    x, y = start_blur, 44  # start of blur position from the left and from the top
+    radius = 25
+
+    cropped_img = img.crop((x, y, x + blur_size, y + 52))  # third and fourth parameters is how far right and how far down to blur
+
+    # the filter removes the alpha, you need to add it again by converting to RGBA
+    blurred_img = cropped_img.filter(ImageFilter.GaussianBlur(20), ).convert("RGBA")
+
+    # paste blurred, uses alphachannel of create_rounded_rectangle_mask() as mask
+    # only those parts of the mask that have a non-zero alpha gets pasted
+    img.paste(blurred_img, (x, y), create_rounded_rectangle_mask(cropped_img, radius))
+
+    img.save('temp_images/' + card_image_fname + '.png')
+    img.show()
+
+
+def test_blur_casting_cost():
+    # ask for a card name
+    mtg_card = input("Enter the name of a MTG card:  ")
+
+    # get card from Scryfall API
+    card = scrython.cards.Named(fuzzy=mtg_card)
+
+    # get card image
+
+    # r = requests.get(card['image_uris']['large'])
+    r = requests.get(card.image_uris()['large'])
+    card_name = card.collector_number() + "_" + card.name() + '.jpg'
+    open('temp_images/' + card_name, 'wb').write(r.content)
+
+    # get casting cost
+    card_raw_cc = card.mana_cost()
+    print(card_raw_cc)
+    card_raw_temp = re.sub('\\{?\\d?\\d\\}', 'D', card_raw_cc)
+    print(f'{card_raw_temp} should have no double digits')
+    card_raw_temp = re.sub('\\{.\\/.\\}', 'H', card_raw_temp)
+    print(f'{card_raw_temp} should have no hybrid mana')
+    card_cc = re.sub('\\{*.\\}', 'X', card_raw_temp)
+    print(f'There are {len(card_cc)} symbols in the casting cost {card_cc}')
+
+    # blur the casting cost
+    blur_casting_cost(card_cc, card_name)
+
+
 if __name__ == "__main__":
     print("\n\nMTG Programs - Main Menu\n\n")
     print("1) Get price of a card")
@@ -278,6 +409,8 @@ if __name__ == "__main__":
     print("9) Download images of cards listed in deck.txt")
     print("10) Print removal cards from a set")
     print("11) Print removal data from all sets")
+    print("12) Blur the casting cost from Abrade")
+    print("13) Blur the casting cost for a card")
     print("\n")
     menu_choice = input("Your choice: ")
 
@@ -303,5 +436,9 @@ if __name__ == "__main__":
         print_removal()
     elif menu_choice == "11":
         get_removal_data_on_all_sets()
+    elif menu_choice == "12":
+        blur_abrade_casting_cost()
+    elif menu_choice == "13":
+        test_blur_casting_cost()
     else:
         print("Not a valid choice!")
