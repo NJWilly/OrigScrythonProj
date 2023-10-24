@@ -315,29 +315,30 @@ def blur_casting_cost(cc, card_image_fname, show=None):
 
     casting_cost = cc
     casting_cost_len = len(casting_cost)
-    blur_size = symbol_space * casting_cost_len + between_space * (casting_cost_len - 1)
-    start_blur = 625 - blur_size
+    if casting_cost_len != 0:
+        blur_size = symbol_space * casting_cost_len + between_space * (casting_cost_len - 1)
+        start_blur = 625 - blur_size
 
-    img = Image.open('temp_images/' + card_image_fname)
-    # print(f'Image Shape: {img.size}')
+        img = Image.open('temp_images/' + card_image_fname)
+        # print(f'Image Shape: {img.size}')
 
-    x, y = start_blur, 44  # start of blur position from the left and from the top
-    radius = 25
+        x, y = start_blur, 44  # start of blur position from the left and from the top
+        radius = 25
 
-    # third and fourth parameters is how far right and how far down to blur
-    cropped_img = img.crop((x, y, x + blur_size, y + 52))
+        # third and fourth parameters is how far right and how far down to blur
+        cropped_img = img.crop((x, y, x + blur_size, y + 52))
 
-    # the filter removes the alpha, you need to add it again by converting to RGBA
-    blurred_img = cropped_img.filter(ImageFilter.GaussianBlur(20), ).convert("RGBA")
+        # the filter removes the alpha, you need to add it again by converting to RGBA
+        blurred_img = cropped_img.filter(ImageFilter.GaussianBlur(20), ).convert("RGBA")
 
-    # paste blurred, uses alphachannel of create_rounded_rectangle_mask() as mask
-    # only those parts of the mask that have a non-zero alpha gets pasted
-    img.paste(blurred_img, (x, y), create_rounded_rectangle_mask(cropped_img, radius))
+        # paste blurred, uses alphachannel of create_rounded_rectangle_mask() as mask
+        # only those parts of the mask that have a non-zero alpha gets pasted
+        img.paste(blurred_img, (x, y), create_rounded_rectangle_mask(cropped_img, radius))
 
-    card_image_fname_root = card_image_fname[:card_image_fname.index('.')]
-    img.save('temp_images/' + card_image_fname_root + '_CC_blured.jpg')
-    if show is not None:
-        img.show()
+        card_image_fname_root = card_image_fname[:card_image_fname.index('.')]
+        img.save('temp_images/' + card_image_fname_root + '_CC_blured.jpg')
+        if show is not None:
+            img.show()
 
 
 def get_casting_cost_length(card):
@@ -349,6 +350,7 @@ def get_casting_cost_length(card):
     # print(f'{card_raw_temp} should have no hybrid mana')
     card_cc = re.sub(r'{*.}', 'M', card_raw_temp)
     # print(f'There are {len(card_cc)} symbols in the casting cost {card_cc}')
+
     return card_cc
 
 
@@ -364,14 +366,14 @@ def test_blur_casting_cost():
     # get card image
 
     r = requests.get(card.image_uris()['large'])
-    card_name = card.collector_number() + "_" + card.name() + '.jpg'
+    card_name = card.collector_number() + "_" + "".join([c for c in card.name() if re.match(r'\w', c)]) + '.jpg'
     open('temp_images/' + card_name, 'wb').write(r.content)
 
     # get casting cost
     card_cc = get_casting_cost_length(card)
 
     # blur the casting cost
-    blur_casting_cost(card_cc, card_name)
+    blur_casting_cost(card_cc, card_name, show=True)
 
 
 if __name__ == "__main__":
