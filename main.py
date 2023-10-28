@@ -250,8 +250,8 @@ def get_removal_data_on_all_sets():
     # write header data
     worksheet.write("A1", "Name")
     worksheet.write("B1", "Abv")
-    worksheet.write("B3", "Removal")
-    worksheet.write("B4", "Total")
+    worksheet.write("C1", "Removal")
+    worksheet.write("D1", "Total")
 
     mtg_sets = scrython.sets.Sets()
     time.sleep(.001)
