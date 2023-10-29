@@ -342,7 +342,18 @@ def blur_casting_cost(cc, card_image_fname, show=None):
 
 
 def get_casting_cost_length(card):
-    card_raw_cc = card.mana_cost()
+    card_raw_cc = ''
+    try:
+        faces = card.card_faces()
+        card_raw_cc = card.card_faces()[0]['mana_cost']
+    except KeyError:
+        pass
+
+    try:
+        card_raw_cc = card.mana_cost()
+    except KeyError:
+        pass
+
     # print(card_raw_cc)
     card_raw_temp = re.sub(r'{?\d?\d}', 'D', card_raw_cc)
     # print(f'{card_raw_temp} should have no double digits')
