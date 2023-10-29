@@ -176,11 +176,11 @@ def make_kahoot_quiz():
 
     # open Excel file
     import xlsxwriter  # see https://xlsxwriter.readthedocs.io/
-    workbook = xlsxwriter.Workbook("venv/Kahoot-Quiz-" + set_to_lookup + ".xlsx")
+    workbook = xlsxwriter.Workbook("Kahoot-Quiz-" + set_to_lookup + ".xlsx")
     worksheet = workbook.add_worksheet()
 
     # place header row
-    with open("venv/KahootHeaders.txt") as file:
+    with open("KahootHeaders.txt") as file:
         start_cell = "A"
         while line := file.readline().rstrip():
             worksheet.write(start_cell + "1", line)
@@ -203,7 +203,7 @@ def write_to_kahoot_excel_file():
     import xlsxwriter  # see https://xlsxwriter.readthedocs.io/
     workbook = xlsxwriter.Workbook('venv/Kahoot-Quiz-Blank.xlsx')
     worksheet = workbook.add_worksheet()
-    with open("venv/KahootHeaders.txt") as file:
+    with open("KahootHeaders.txt") as file:
         start_cell = "A"
         while line := file.readline().rstrip():
             worksheet.write(start_cell + "1", line)
